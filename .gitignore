@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+backend/.env
+
+# Node (frontend has its own .gitignore too, this is a safety net)
+node_modules/
+dist/
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+
+# Claude Code local (machine-specific tool permissions, not project config)
+.claude/settings.local.json

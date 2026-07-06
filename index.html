@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaxExtract — AI Tax Document Extraction</title>
+  <meta name="description" content="Upload W-2, 1099, 1098, and 1040 tax documents and instantly extract structured data using Gemini AI. Built for tax preparers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <line x1="10" y1="9" x2="8" y2="9"/>
+        </svg>
+      </div>
+      <h1 class="brand-name">TaxExtract <span class="brand-tag">AI Document Extraction</span></h1>
+    </div>
+
+    <div class="header-center">
+      <div class="api-status-pill" id="api-status-pill">
+        <span class="api-status-dot" id="api-status-dot"></span>
+        <span id="api-status-text">No API Key</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-danger-ghost btn-sm" id="btn-clear" title="Clear all documents from session">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+        </svg>
+        Clear Session
+      </button>
+      <button class="btn btn-ghost btn-sm" id="btn-api-key">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="15.5" r="5.5"/>
+          <path d="M21 2l-9.6 9.6"/>
+          <path d="M15.5 7.5l3 3L22 7l-3-3"/>
+        </svg>
+        <span id="btn-api-key-label">Set API Key</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main ───────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Sidebar: Upload + Queue -->
+    <aside class="sidebar">
+      <div class="sidebar-upload">
+        <div class="section-label">Upload Documents</div>
+        <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Upload tax documents">
+          <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.webp" multiple hidden aria-hidden="true" />
+          <div class="upload-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="upload-title">Drop files here</div>
+          <div class="upload-sub">or click to browse</div>
+          <div class="format-chips">
+            <span class="format-chip">PDF</span>
+            <span class="format-chip">JPG</span>
+            <span class="format-chip">PNG</span>
+            <span class="format-chip">TIFF</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="queue-wrap">
+        <div class="queue-header">
+          <span class="section-label" style="margin:0">Documents</span>
+          <span class="queue-count-badge" id="queue-count">0</span>
+        </div>
+        <div class="queue-list" id="queue-list">
+          <div class="queue-empty-state" id="queue-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <p>No documents yet.<br/>Upload a tax form to get started.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-cell">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">Uploaded</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num" id="stat-done">0</div>
+          <div class="stat-label">Extracted</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Document Viewer -->
+    <section class="viewer" aria-label="Document viewer">
+      <div class="viewer-bar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-3);flex-shrink:0">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+        <span class="viewer-filename" id="viewer-filename">No document selected</span>
+      </div>
+      <div class="viewer-body" id="viewer-body">
+        <div class="viewer-placeholder" id="viewer-placeholder">
+          <svg class="big-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <div class="viewer-placeholder-title">No document selected</div>
+          <div class="viewer-placeholder-sub">Upload a tax document and select it<br/>from the queue to preview it here</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Extraction Panel -->
+    <section class="extraction" aria-label="AI extraction results">
+
+      <!-- Header -->
+      <div class="extraction-top">
+        <div class="extraction-title-row">
+          <span class="extraction-title">Extracted Data</span>
+          <div class="extraction-header-btns" id="extraction-header-btns" hidden>
+            <button class="btn btn-ghost btn-sm btn-icon" id="btn-copy-json" title="Copy extracted JSON to clipboard">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-meta" id="form-meta">
+          <span class="form-meta-placeholder">Select a document to begin</span>
+        </div>
+      </div>
+
+      <!-- Extract Button (shown when doc is selected + has base64) -->
+      <div class="extract-zone" id="extract-zone" hidden>
+        <button class="btn-extract" id="btn-extract" aria-label="Extract data from document using AI">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          Extract with AI
+        </button>
+      </div>
+
+      <!-- Progress rail (shown during extraction) -->
+      <div class="progress-rail" id="progress-rail" hidden>
+        <div class="progress-bar"></div>
+      </div>
+
+      <!-- Main content area -->
+      <div class="extraction-body" id="extraction-body">
+        <div class="panel-center">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.9" style="color:var(--primary)">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <div class="panel-center-title">Ready to extract</div>
+          <div class="panel-center-sub">Upload a tax document, select it,<br/>then click "Extract with AI"</div>
+        </div>
+      </div>
+
+      <!-- Export Bar -->
+      <div class="export-bar" id="export-bar" hidden>
+        <span class="export-bar-text">Export all extracted documents</span>
+        <button class="btn btn-ghost btn-sm" id="btn-export-csv" title="Download CSV">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          CSV
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btn-export-json" title="Download JSON">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          JSON
+        </button>
+      </div>
+    </section>
+  </main><!-- /main -->
+
+  <!-- ── API Key Modal ───────────────────────────────────── -->
+  <div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7.5" cy="15.5" r="5.5"/>
+            <path d="M21 2l-9.6 9.6"/>
+            <path d="M15.5 7.5l3 3L22 7l-3-3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title" id="modal-title">Gemini API Key</div>
+          <div class="modal-sub">Your key is stored locally in this browser and used only to call the Gemini API. It is never transmitted elsewhere.</div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="input-api-key">API Key</label>
+        <input type="password" id="input-api-key" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" />
+        <div class="hint">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--primary-light)">aistudio.google.com/apikey</a>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="select-model">Gemini Model</label>
+        <select id="select-model">
+          <option value="gemini-2.0-flash">gemini-2.0-flash — Fast &amp; accurate (recommended)</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash — Latest Flash</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro — Highest accuracy</option>
+        </select>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-modal-save">Save &amp; Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast Container ─────────────────────────────────── -->
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

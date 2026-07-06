@@ -2,7 +2,10 @@
  * client.js — API wrapper for the FastAPI backend
  */
 
-const API_BASE = '/api';
+// In local dev this stays '/api' and rides the Vite proxy to localhost:8000.
+// In production (GitHub Pages) there's no proxy, so the build is given the
+// deployed backend's full URL via VITE_API_BASE_URL.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
  * Upload a file and extract tax data.

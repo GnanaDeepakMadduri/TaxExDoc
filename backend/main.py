@@ -67,6 +67,9 @@ def health():
         "note": "Only digital PDF extraction is supported."
     }
 
+@app.get("/")
+def read_root():
+    return {"status": "ok", "message": "API is running"}
 
 @app.post("/api/extract", tags=["Extraction"])
 async def extract(file: UploadFile = File(...)):

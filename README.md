@@ -48,16 +48,15 @@ W-2, 1099-NEC, 1099-MISC, 1099-INT, 1099-DIV, 1099-R, 1099-B, 1098, 1095-A, 1040
 ## Project Structure
 
 ```
-Groove/
 ├── backend/
 │   ├── main.py          # FastAPI endpoints
-│   ├── extractor.py     # Gemini extraction logic
+│   ├── extractor.py     # extraction logic
 │   ├── requirements.txt
-│   └── .env             # Your API key (never commit)
+│   └── .env             
 └── frontend/
     ├── src/
     │   ├── App.jsx
-    │   ├── index.css    # Grove design system
+    │   ├── index.css    
     │   ├── api/client.js
     │   ├── hooks/
     │   └── components/
